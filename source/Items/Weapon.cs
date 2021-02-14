@@ -26,8 +26,7 @@ namespace VeganRPG
             Util.Write(" - ");
 
             if (!newLine)
-            {
-                
+            {        
                 Util.Write(Damage.Item2 + "", ConsoleColor.Magenta);
             }
             else
