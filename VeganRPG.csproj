@@ -10,4 +10,8 @@
     <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="VeganRPG.exe" />
+  </ItemGroup>
+
 </Project>
