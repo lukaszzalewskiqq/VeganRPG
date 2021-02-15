@@ -46,5 +46,7 @@ namespace VeganRPG
 
         public int Count { get => count; set => count = value; }
         public int Ap { get => ap; set => ap = value; }
-    }
+
+        public int OnlyHpValue { get => Health - (Ap * 10); }
+}
 }

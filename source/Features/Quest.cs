@@ -15,13 +15,15 @@ namespace VeganRPG
         List<Tuple<QuestItem, int>> questItems;
 
         int goldReward;
+        int experienceReward;
         List<Item> itemsReward;
 
         // True, if quest finish takes place outside NPC that gave it
         bool outsideFinish;
 
-        public Quest(string name, string description, List<Tuple<Enemy, int>> questEnemies, 
-            List<Tuple<QuestItem, int>> questItems, int goldReward, List<Item> itemsReward, bool outsideFinish = false)
+        public Quest(string name, string description, 
+            List<Tuple<Enemy, int>> questEnemies, List<Tuple<QuestItem, int>> questItems, 
+            int goldReward, int experienceReward, List<Item> itemsReward, bool outsideFinish = false)
         {
             Name = name;
 
@@ -29,6 +31,7 @@ namespace VeganRPG
             QuestItems = questItems;
 
             GoldReward = goldReward;
+            ExperienceReward = experienceReward;
             ItemsReward = itemsReward;
 
             Description = description;
@@ -75,7 +78,7 @@ namespace VeganRPG
             Util.Write("You completed ");
             Util.WriteLine(Name, ConsoleColor.Red);
 
-            if (goldReward == 0 && itemsReward.Count == 0)
+            if (GoldReward == 0 && ItemsReward.Count == 0 && ExperienceReward == 0)
             {
                 Console.ReadKey();
 
@@ -84,10 +87,16 @@ namespace VeganRPG
 
             Util.WriteLine("Reward: ");
 
-            if (goldReward > 0)
+            if (GoldReward > 0)
             {
                 Util.WriteLine(GoldReward + " G", ConsoleColor.DarkYellow);
                 player.Gold += GoldReward;
+            }
+
+            if (ExperienceReward > 0)
+            {
+                Util.WriteLine(ExperienceReward + " Experience", ConsoleColor.DarkRed);
+                player.Experience += ExperienceReward;
             }
             
             if (itemsReward.Count > 0)
@@ -212,5 +221,6 @@ namespace VeganRPG
         public string Name { get => name; set => name = value; }
         public string Description { get => description; set => description = value; }
         public bool OutsideFinish { get => outsideFinish; set => outsideFinish = value; }
+        public int ExperienceReward { get => experienceReward; set => experienceReward = value; }
     }
 }

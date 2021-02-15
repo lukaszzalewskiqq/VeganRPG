@@ -713,6 +713,11 @@ namespace VeganRPG
                 Util.Write("\n4. ");
                 Util.WriteLine("Consume", ConsoleColor.Yellow);
 
+                Util.Write("5. ");
+                Util.Write("Consume", ConsoleColor.Yellow);
+                Util.Write(", till full on ");
+                Util.WriteLine("health", ConsoleColor.Red);
+
                 Util.WriteLine("\n0. Exit");
 
                 ConsoleKeyInfo decision = Console.ReadKey();
@@ -792,6 +797,10 @@ namespace VeganRPG
                             break;
                         }
                     }
+                }
+                else if (decision.Key == ConsoleKey.NumPad5)
+                {
+                    RestoreHealth();
                 }
             }
         }
@@ -996,6 +1005,86 @@ namespace VeganRPG
             }
 
             return -1;
+        }
+
+        void RestoreHealth()
+        {
+            List<Consumable> possibleConsumables = player.Consumables.Where(y => y.Health > 0).Where(z => player.Level >= z.Level).
+                OrderByDescending(x => x.OnlyHpValue).ToList();
+                
+            int itemsConsumed = 0;
+            int healthAtStart = player.Health;
+            int apAtStart = player.Ap;
+
+            Console.Clear();
+
+            if (possibleConsumables.Count == 0)
+            {
+                Util.Write("You can't ");
+                Util.Write("consume ", ConsoleColor.Yellow);
+                Util.WriteLine("anything");
+
+                Console.ReadKey();
+
+                return;
+            }
+
+            int consumableIndex = 0;
+
+            while (consumableIndex < possibleConsumables.Count && player.Health < player.MaxHealth)
+            {
+                if (possibleConsumables[consumableIndex].Count > 0)
+                {
+                    possibleConsumables[consumableIndex].Count -= 1;
+                }
+                else
+                {
+                    consumableIndex += 1;
+                    continue;
+                }
+
+                if (player.Health + possibleConsumables[consumableIndex].Health > player.MaxHealth)
+                {
+                    player.Health = player.MaxHealth;
+                }
+                else
+                {
+                    player.Health += possibleConsumables[consumableIndex].Health;
+                }
+
+                if (player.Ap + possibleConsumables[consumableIndex].Ap > player.Level * player.ApPerLevel)
+                {
+                    player.Ap = player.Level * player.ApPerLevel;
+                }
+                else
+                {
+                    player.Ap += possibleConsumables[consumableIndex].Ap;
+                }
+
+                itemsConsumed += 1;
+            }
+
+            foreach (var consumable in possibleConsumables)
+            {
+                if (consumable.Count == 0)
+                {
+                    player.Consumables.RemoveAll(x => x == consumable);
+                }
+                else
+                {
+                    player.Consumables.Find(x => x == consumable).Count = consumable.Count;
+                }
+            }
+
+            Util.Write("Consumed " + itemsConsumed + " ", ConsoleColor.Yellow);
+            Util.WriteLine("items");
+
+            Util.Write("Restored ");
+            Util.Write((player.Health - healthAtStart) + " health ", ConsoleColor.Red);
+            Util.Write("and ");
+            Util.WriteLine((player.Ap - apAtStart) + " ability points", ConsoleColor.Cyan);  
+
+            Console.ReadKey();
         }
 
         bool UseAbility(List<Ability> possibleAbilities, ref List<Ability> abilitiesInUse, ref AbilityEffects abilityEffectsCombined)
@@ -2637,7 +2726,7 @@ namespace VeganRPG
 
             Quest peterProblem = new Quest("Peter Problem", 
                 "@15|Ask @9|Peter @15|about the @10|place",
-                emptyEnemies, emptyQuestItems, 0, emptyRewards, true);
+                emptyEnemies, emptyQuestItems, 0, 10, emptyRewards, true);
 
             List<Tuple<Enemy, int>> antVacuumEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2646,7 +2735,7 @@ namespace VeganRPG
             Quest antVacuum = new Quest("Ant Vacuum", 
                 "I would give you vacuum cleaner, if I would have one",
                 antVacuumEnemies, emptyQuestItems,
-                10, emptyRewards);
+                10, 20, emptyRewards);
 
             List<Tuple<QuestItem, int>> inTheWebQuestItems = new List<Tuple<QuestItem, int>>()
             {
@@ -2659,7 +2748,7 @@ namespace VeganRPG
             Quest inTheWeb = new Quest("In The Web",
                 "@15|I can't see anything in my @2|basement",
                 emptyEnemies, inTheWebQuestItems,
-                20, inTheWebRewards);
+                20, 20, inTheWebRewards);
 
             List<Tuple<Enemy, int>> filthyCockroachesEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2668,11 +2757,11 @@ namespace VeganRPG
             Quest filthyCockroaches = new Quest("Filthy Cockroaches",
                 "@15|These stingy @9|insects @15|stole half of my @6|coins",
                 filthyCockroachesEnemies, emptyQuestItems,
-                40, emptyRewards);
+                40, 0, emptyRewards);
 
             List<Tuple<QuestItem, int>> venomousFarmItems = new List<Tuple<QuestItem, int>>()
             {
-                new Tuple<QuestItem, int>(questItems.Find(x => x.Name == "Snake Venom"), 5),
+                new Tuple<QuestItem, int>(questItems.Find(x => x.Name == "Snake Venom"), 4),
                 new Tuple<QuestItem, int>(questItems.Find(x => x.Name == "Frog Venom"), 4)
             };
             List<Item> venomousFarmRewards = new List<Item>()
@@ -2684,7 +2773,7 @@ namespace VeganRPG
             Quest venomousFarm = new Quest("Venomous Farm",
                 "@15|Something causes our @9|people @15|to vomit extremely often",
                 emptyEnemies, venomousFarmItems,
-                0, venomousFarmRewards);
+                0, 100, venomousFarmRewards);
 
             List<Tuple<Enemy, int>> whiteWidowEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2693,12 +2782,12 @@ namespace VeganRPG
             Quest whiteWidow = new Quest("White Widow",
                 "You have the best opportunity to stop this madness",
                 whiteWidowEnemies, emptyQuestItems,
-                50, emptyRewards);
+                50, 0, emptyRewards);
 
             Quest myBrotherHenry = new Quest("My Brother Henry",
                 "@15|Please talk to @9|Henry@15|, when he arrives. He knows more about that sitaution",
                 emptyEnemies, emptyQuestItems,
-                0, emptyRewards, true);
+                0, 0, emptyRewards, true);
 
             List<Tuple<Enemy, int>> bloodyDenEnemies = new List<Tuple<Enemy, int>>()
             {
@@ -2711,7 +2800,7 @@ namespace VeganRPG
             Quest bloodyDen = new Quest("Bloody Den",
                 "You gonna give them hell",
                 bloodyDenEnemies, emptyQuestItems,
-                50, bloodyDenRewards);
+                50, 0, bloodyDenRewards);
 
             List<Tuple<QuestItem, int>> spiderKingItems = new List<Tuple<QuestItem, int>>()
             {
@@ -2727,7 +2816,7 @@ namespace VeganRPG
             Quest spiderKing = new Quest("Spider King",
                 "@15|I'm going to prepare an amazing @14|soup",
                 emptyEnemies, spiderKingItems,
-                100, spiderKingRewards);
+                100, 0, spiderKingRewards);
 
             List<Tuple<Enemy, int>> backInTimeEnemies = new List<Tuple<Enemy, int>>()
             {
@@ -2744,7 +2833,7 @@ namespace VeganRPG
             Quest backInTime = new Quest("Back In Time",
                 "Show some respect to the past",
                 backInTimeEnemies, emptyQuestItems,
-                0, backInTimeRewards);
+                0, 1000, backInTimeRewards);
 
             List<Tuple<Enemy, int>> laboursOfHerculesEnemies = new List<Tuple<Enemy, int>>()
             {
@@ -2760,7 +2849,7 @@ namespace VeganRPG
             Quest laboursOfHercules = new Quest("Labours of Hercules",
                 "@15|You need to clean the @2|shed properly",
                 laboursOfHerculesEnemies, emptyQuestItems,
-                150, laboursOfHerculesRewards);
+                150, 2000, laboursOfHerculesRewards);
 
             List<Tuple<QuestItem, int>> farmFaunaItems = new List<Tuple<QuestItem, int>>()
             {
@@ -2779,7 +2868,7 @@ namespace VeganRPG
             Quest farmFauna = new Quest("Farm Fauna",
                 "@15|I hope you recognize all of @12|them",
                 emptyEnemies, farmFaunaItems,
-                1500, farmFaunaRewards);
+                1500, 0, farmFaunaRewards);
 
             List<Tuple<Enemy, int>> witchHuntEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2788,7 +2877,7 @@ namespace VeganRPG
             Quest witchHunt = new Quest("Witch Hunt",
                 "That's your way to go",
                 witchHuntEnemies, emptyQuestItems,
-                0, emptyRewards);
+                0, 0, emptyRewards);
             #endregion
 
             #region Amfurce
@@ -2803,7 +2892,7 @@ namespace VeganRPG
             };
             Quest veganRevolution = new Quest("Vegan Revolution",
                 "@15|Ask @9|Sam @15|about the @10|place",
-                emptyEnemies, emptyQuestItems, 0, veganRevolutionRewards, true);
+                emptyEnemies, emptyQuestItems, 0, 0, veganRevolutionRewards, true);
 
             List<Tuple<Enemy, int>> intrusiveThoughtsEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2817,7 +2906,7 @@ namespace VeganRPG
             };
             Quest intrusiveThoughts = new Quest("Intrusive Thoughts",
                 "First of all, you have to challenge and win against your former self",
-                intrusiveThoughtsEnemies, emptyQuestItems, 0, emptyRewards);
+                intrusiveThoughtsEnemies, emptyQuestItems, 0, 5000, emptyRewards);
 
             List<Tuple<Enemy, int>> pastYouEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2833,7 +2922,7 @@ namespace VeganRPG
             };
             Quest pastYou = new Quest("Past You",
                 "Now is the time to truly win against yourself",
-                pastYouEnemies, emptyQuestItems, 0, pastYouRewards);
+                pastYouEnemies, emptyQuestItems, 0, 0, pastYouRewards);
 
             List<Tuple<QuestItem, int>> exoticIngredientsItems = new List<Tuple<QuestItem, int>>()
             {
@@ -2853,7 +2942,7 @@ namespace VeganRPG
             };
             Quest exoticIngredients = new Quest("Exotic Ingredients",
                 "@15|I'm gonna prepare something @14|special @15|for you",
-                emptyEnemies, exoticIngredientsItems, 5000, exoticIngredientsRewards);
+                emptyEnemies, exoticIngredientsItems, 5000, 5000, exoticIngredientsRewards);
 
             List<Tuple<QuestItem, int>> stolenRecipeItems = new List<Tuple<QuestItem, int>>()
             {
@@ -2866,7 +2955,7 @@ namespace VeganRPG
             };
             Quest stolenRecipe = new Quest("Stolen Recipe",
                 "@9|They @15|think it's gonna stop us",
-                emptyEnemies, stolenRecipeItems, 0, stolenRecipeRewards);
+                emptyEnemies, stolenRecipeItems, 0, 100000, stolenRecipeRewards);
 
             List<Tuple<Enemy, int>> thisIsForbiddenEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2880,7 +2969,7 @@ namespace VeganRPG
             };
             Quest thisIsForbidden = new Quest("This Is Forbidden",
                 "We don't go there",
-                thisIsForbiddenEnemies, emptyQuestItems, 0, thisIsForbiddenRewards);
+                thisIsForbiddenEnemies, emptyQuestItems, 0, 0, thisIsForbiddenRewards);
 
             List<Tuple<Enemy, int>> theEndEnemies = new List<Tuple<Enemy, int>>
             {
@@ -2888,7 +2977,7 @@ namespace VeganRPG
             };
             Quest theEnd = new Quest("The End",
                 "Your final task",
-                theEndEnemies, emptyQuestItems, 0, emptyRewards);
+                theEndEnemies, emptyQuestItems, 0, 0, emptyRewards);
             #endregion
 
             quests = new List<Quest>()

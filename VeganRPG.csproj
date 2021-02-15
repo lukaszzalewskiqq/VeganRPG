@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <ApplicationIcon>veg_icon.ico</ApplicationIcon>
+    <StartupObject>VeganRPG.Program</StartupObject>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Copyright>Łukasz Zalewski</Copyright>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+  </PropertyGroup>
+
+</Project>
